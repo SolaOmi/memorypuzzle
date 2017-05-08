@@ -7,3 +7,4 @@ Todo list:
 - add score counter
 - add score multiplier
   
+  https://github.com/SolaOmi/memorypuzzle/blob/master/mpfull.png
