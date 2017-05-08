@@ -1,6 +1,6 @@
 # memorypuzzle
 
-Memory puzzle is an icon matching puzzle game found in Al Sweigart's Invent with Python book.
+Memory puzzle is an icon matching puzzle game found in Al Sweigart's Making Games with Python and Pygame book.
 
 Requirements:
 - python
