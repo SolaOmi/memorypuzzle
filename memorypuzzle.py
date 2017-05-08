@@ -114,9 +114,9 @@ def main():
                         startGameAnimation(mainBoard)
                     firstSelection = None # reset firstSelection variable
 
-                # Redraw the screen and wait a clock tick.
-                pygame.display.update()
-                FPSCLOCK.tick(FPS)
+        # Redraw the screen and wait a clock tick.
+        pygame.display.update()
+        FPSCLOCK.tick(FPS)
 
 def generateRevealedBoxesData(val):
     revealedBoxes = []
