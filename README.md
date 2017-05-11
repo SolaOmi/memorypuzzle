@@ -10,8 +10,9 @@ Requirements:
   
 Todo list:
 - add timer
-- add score counter
+- ~~add score counter~~
 - add score multiplier
+
   
 ![](https://github.com/SolaOmi/memorypuzzle/blob/master/mpfull.png)
 ![](https://github.com/SolaOmi/memorypuzzle/blob/master/mpsome.png)
