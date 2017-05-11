@@ -9,8 +9,8 @@ WINDOWHEIGHT = 480 # size of window's height in pix
 REVEALSPEED = 8 # speed boxes' sliding reveals and covers
 BOXSIZE = 40 # size of box height & width in pixels
 GAPSIZE = 10 # size of gap between boxes in pixels
-BOARDWIDTH = 10 # number of columns of icons
-BOARDHEIGHT = 7 # number of rows of icons
+BOARDWIDTH = 8 # number of columns of icons
+BOARDHEIGHT = 6 # number of rows of icons
 assert(BOARDWIDTH*BOARDHEIGHT)%2==0,'Board needs to have an even number of boxes for pairs of matches.'
 XMARGIN = int((WINDOWWIDTH-(BOARDWIDTH*(BOXSIZE + GAPSIZE)))/2)
 YMARGIN = int((WINDOWHEIGHT-(BOARDHEIGHT*(BOXSIZE + GAPSIZE)))/2)
@@ -43,10 +43,12 @@ ALLSHAPES = (DONUT,SQUARE,DIAMOND,LINES,OVAL)
 assert len(ALLCOLORS)*len(ALLSHAPES)*2>=BOARDWIDTH*BOARDHEIGHT,"Board is too big for the number of shapes/colors defined"
 
 def main():
-    global FPSCLOCK, DISPLAYSURF
+    global FPSCLOCK, DISPLAYSURF, BASICFONT
     pygame.init()
     FPSCLOCK = pygame.time.Clock()
     DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH,WINDOWHEIGHT))
+
+    BASICFONT = pygame.font.Font('freesansbold.ttf', 16)
 
     mousex = 0 # used to store x coordinate of mouse event
     mousey = 0 # used to store y coordinate of mouse event
@@ -56,6 +58,7 @@ def main():
     revealedBoxes = generateRevealedBoxesData(False)
 
     firstSelection = None # stores the (x,y) of the first box clicked.
+    score = 0 # initial amount of points
 
     DISPLAYSURF.fill(BGCOLOR)
     startGameAnimation(mainBoard)
@@ -65,6 +68,11 @@ def main():
 
         DISPLAYSURF.fill(BGCOLOR) # drawing the window
         drawBoard(mainBoard, revealedBoxes)
+
+        scoreSurf = BASICFONT.render('Score: ' + str(score), 1, WHITE)
+        scoreRect = scoreSurf.get_rect()
+        scoreRect.topleft = (WINDOWWIDTH - 100, 10)
+        DISPLAYSURF.blit(scoreSurf, scoreRect)
 
         for event in pygame.event.get(): # event handling loop
             if event.type == QUIT or (event.type==KEYUP and event.key==K_ESCAPE):
@@ -97,6 +105,12 @@ def main():
                         coverBoxesAnimation(mainBoard, [(firstSelection[0],firstSelection[1]),(boxx,boxy)])
                         revealedBoxes[firstSelection[0]][firstSelection[1]] = False
                         revealedBoxes[boxx][boxy] = False
+                        if score > 0:
+                            # minus one for every wrong guess if you have more than zero points
+                            score -= 1    
+                    elif icon1shape == icon2shape and icon1color == icon2color and not hasWon(revealedBoxes):
+                        score += 5
+                        # plus 5 for every correct guess
                     elif hasWon(revealedBoxes): # check if all pairs found
                         gameWonAnimation(mainBoard)
                         pygame.time.wait(2000)
@@ -112,17 +126,20 @@ def main():
 
                         # Replay the start game animation.
                         startGameAnimation(mainBoard)
+                        score = 0
                     firstSelection = None # reset firstSelection variable
 
         # Redraw the screen and wait a clock tick.
         pygame.display.update()
         FPSCLOCK.tick(FPS)
 
+
 def generateRevealedBoxesData(val):
     revealedBoxes = []
     for i in range(BOARDWIDTH):
         revealedBoxes.append([val]*BOARDHEIGHT)
     return revealedBoxes
+
 
 def getRandomizedBoard():
     # Get a list of every possible shape in every possible color.
@@ -172,6 +189,7 @@ def getBoxAtPixel(x,y):
                 return (boxx,boxy)
     return (None,None)
 
+
 def drawIcon(shape, color, boxx, boxy):
     quarter = int(BOXSIZE*0.25) # syntactic sugar
     half = int(BOXSIZE*0.5) # syntactic sugar
@@ -211,6 +229,7 @@ def drawBoxCovers(board, boxes, coverage):
             pygame.draw.rect(DISPLAYSURF,BOXCOLOR,(left,top,coverage,BOXSIZE))
     pygame.display.update()
     FPSCLOCK.tick(FPS)
+
 
 def revealBoxesAnimation(board,boxesToReveal):
     # Do the "box reveal" animation.
@@ -271,6 +290,7 @@ def gameWonAnimation(board):
         drawBoard(board,coveredBoxes)
         pygame.display.update()
         pygame.time.wait(300)
+
 
 def hasWon(revealedBoxes):
     # Returns True if all the boxes have been revealed, otherwise False
