@@ -59,6 +59,7 @@ def main():
 
     firstSelection = None # stores the (x,y) of the first box clicked.
     score = 0 # initial amount of points
+    streak = 0 # score multiplier
 
     DISPLAYSURF.fill(BGCOLOR)
     startGameAnimation(mainBoard)
@@ -69,7 +70,14 @@ def main():
         DISPLAYSURF.fill(BGCOLOR) # drawing the window
         drawBoard(mainBoard, revealedBoxes)
 
-        scoreSurf = BASICFONT.render('Score: ' + str(score), 1, WHITE)
+        # change color of score status depending on streak
+        scoreColor = WHITE
+        if streak == 3:
+            scoreColor = ORANGE
+        elif streak == 2:
+            scoreColor = YELLOW
+
+        scoreSurf = BASICFONT.render('Score: ' + str(score), 1, scoreColor)
         scoreRect = scoreSurf.get_rect()
         scoreRect.topleft = (WINDOWWIDTH - 100, 10)
         DISPLAYSURF.blit(scoreSurf, scoreRect)
@@ -105,12 +113,18 @@ def main():
                         coverBoxesAnimation(mainBoard, [(firstSelection[0],firstSelection[1]),(boxx,boxy)])
                         revealedBoxes[firstSelection[0]][firstSelection[1]] = False
                         revealedBoxes[boxx][boxy] = False
-                        if score > 0:
+                        if score >= 2:
                             # minus one for every wrong guess if you have more than zero points
-                            score -= 1    
+                            score -= 2
+                        elif score == 1:
+                            score = 0
+                        # reset streak for wrong guess.
+                        streak = 0
                     elif icon1shape == icon2shape and icon1color == icon2color and not hasWon(revealedBoxes):
-                        score += 5
-                        # plus 5 for every correct guess
+                        # plus 5 times streak for every correct guess
+                        if streak < 3:
+                            streak += 1
+                        score += (5*streak) if streak > 0 else 5
                     elif hasWon(revealedBoxes): # check if all pairs found
                         gameWonAnimation(mainBoard)
                         pygame.time.wait(2000)
