@@ -60,6 +60,7 @@ def main():
     firstSelection = None # stores the (x,y) of the first box clicked.
     score = 0 # initial amount of points
     streak = 0 # score multiplier
+    time = 300 # time counter
 
     DISPLAYSURF.fill(BGCOLOR)
     startGameAnimation(mainBoard)
@@ -81,6 +82,29 @@ def main():
         scoreRect = scoreSurf.get_rect()
         scoreRect.topleft = (WINDOWWIDTH - 100, 10)
         DISPLAYSURF.blit(scoreSurf, scoreRect)
+
+        seconds = FPSCLOCK.tick()/33
+        time -= seconds
+        timerSurf = BASICFONT.render('Time: ' + str(round(time)), 1, WHITE)
+        timerRect = timerSurf.get_rect()
+        timerRect.topleft = (WINDOWWIDTH - 610, 10)
+        DISPLAYSURF.blit(timerSurf, timerRect)
+
+        if time < 0:
+            pygame.time.wait(2000)
+            # Reset the board
+            mainBoard = getRandomizedBoard()
+            revealedBoxes = generateRevealedBoxesData(False)
+
+            # Show the fully unrevealed board for a second.
+            drawBoard(mainBoard, revealedBoxes)
+            pygame.display.update()
+            pygame.time.wait(1000)
+
+            # Replay the start game animation.
+            startGameAnimation(mainBoard)
+            score = 0
+            time = 300
 
         for event in pygame.event.get(): # event handling loop
             if event.type == QUIT or (event.type==KEYUP and event.key==K_ESCAPE):
@@ -141,6 +165,8 @@ def main():
                         # Replay the start game animation.
                         startGameAnimation(mainBoard)
                         score = 0
+                        time = 300
+
                     firstSelection = None # reset firstSelection variable
 
         # Redraw the screen and wait a clock tick.

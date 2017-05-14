@@ -9,11 +9,11 @@ Requirements:
   linux or windows python2/3, not sure about Mac OS.
 
 Todo list:
-- add timer
+- ~~add timer~~
 - ~~add score counter~~
 - ~~add score multiplier~~
-- high score 
-
+- high score
+- add time converter (s to min:s)
 
 ![](https://github.com/SolaOmi/memorypuzzle/blob/master/mpfull.png)
 ![](https://github.com/SolaOmi/memorypuzzle/blob/master/mpsome.png)
