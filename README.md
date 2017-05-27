@@ -6,7 +6,7 @@ Requirements:
 - python
 - pygame module
 * The first line of the program is there to make it run on python3 for linux, removing it should allow you to run it on python2 for
-  linux or windows python2/3, not sure about Mac OS.
+  linux or windows python2/3 (*), not sure about Mac OS. *(Beware Line Endings if running on windows.)
 
 Todo list:
 - ~~add timer~~
