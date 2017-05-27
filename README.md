@@ -1,4 +1,4 @@
-# memorypuzzle
+# Memory Puzzle
 
 Memory puzzle is an icon matching puzzle game found in Al Sweigart's Making Games with Python and Pygame book.
 
