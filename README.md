@@ -12,7 +12,7 @@ Todo list:
 - ~~add timer~~
 - ~~add score counter~~
 - ~~add score multiplier~~
-- high score
+- ~~high score ~~
 - add time converter (s to min:s)
 
 ![](https://github.com/SolaOmi/memorypuzzle/blob/master/mpfull.png)

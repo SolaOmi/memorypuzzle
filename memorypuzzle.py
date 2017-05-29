@@ -4,6 +4,7 @@ import random, pygame, sys
 from pygame.locals import *
 
 FPS = 30 # frames per second, the general speed of the program
+RUNTIME = 100 # Time limit to solve the puzzle
 WINDOWWIDTH = 640 # size of window's width in pixels
 WINDOWHEIGHT = 480 # size of window's height in pix
 REVEALSPEED = 8 # speed boxes' sliding reveals and covers
@@ -31,6 +32,7 @@ BGCOLOR = NAVYBLUE
 LIGHTBGCOLOR = GRAY
 BOXCOLOR = WHITE
 HIGHLIGHTCOLOR = BLUE
+TEXTCOLOR = WHITE
 
 DONUT = 'donut'
 SQUARE = 'square'
@@ -43,12 +45,13 @@ ALLSHAPES = (DONUT,SQUARE,DIAMOND,LINES,OVAL)
 assert len(ALLCOLORS)*len(ALLSHAPES)*2>=BOARDWIDTH*BOARDHEIGHT,"Board is too big for the number of shapes/colors defined"
 
 def main():
-    global FPSCLOCK, DISPLAYSURF, BASICFONT
+    global FPSCLOCK, DISPLAYSURF, BASICFONT, BIGFONT
     pygame.init()
     FPSCLOCK = pygame.time.Clock()
     DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH,WINDOWHEIGHT))
 
     BASICFONT = pygame.font.Font('freesansbold.ttf', 16)
+    BIGFONT = pygame.font.Font('freesansbold.ttf', 48)
 
     mousex = 0 # used to store x coordinate of mouse event
     mousey = 0 # used to store y coordinate of mouse event
@@ -60,7 +63,7 @@ def main():
     firstSelection = None # stores the (x,y) of the first box clicked.
     score = 0 # initial amount of points
     streak = 0 # score multiplier
-    time = 300 # time counter
+    time = RUNTIME # time counter
 
     DISPLAYSURF.fill(BGCOLOR)
     startGameAnimation(mainBoard)
@@ -78,21 +81,22 @@ def main():
         elif streak == 2:
             scoreColor = YELLOW
 
-        scoreSurf = BASICFONT.render('Score: ' + str(score), 1, scoreColor)
-        scoreRect = scoreSurf.get_rect()
+        scoreSurf, scoreRect = makeTextObjs('Score: ' + str(score), BASICFONT, TEXTCOLOR)
         scoreRect.topleft = (WINDOWWIDTH - 100, 10)
         DISPLAYSURF.blit(scoreSurf, scoreRect)
 
-        seconds = FPSCLOCK.tick()/33
+        seconds = FPSCLOCK.tick()/15
         time -= seconds
-        timerSurf = BASICFONT.render('Time: ' + str(round(time)), 1, WHITE)
-        timerRect = timerSurf.get_rect()
+        timerSurf, timerRect = makeTextObjs('Time: ' + str(round(time)), BASICFONT, TEXTCOLOR)
         timerRect.topleft = (WINDOWWIDTH - 610, 10)
         DISPLAYSURF.blit(timerSurf, timerRect)
 
         if time < 0:
             pygame.time.wait(2000)
+            gameOver(score)
+
             # Reset the board
+            DISPLAYSURF.fill(BGCOLOR)
             mainBoard = getRandomizedBoard()
             revealedBoxes = generateRevealedBoxesData(False)
 
@@ -104,7 +108,7 @@ def main():
             # Replay the start game animation.
             startGameAnimation(mainBoard)
             score = 0
-            time = 300
+            time = RUNTIME
 
         for event in pygame.event.get(): # event handling loop
             if event.type == QUIT or (event.type==KEYUP and event.key==K_ESCAPE):
@@ -150,10 +154,12 @@ def main():
                             streak += 1
                         score += (5*streak) if streak > 0 else 5
                     elif hasWon(revealedBoxes): # check if all pairs found
-                        gameWonAnimation(mainBoard)
+                        score += (5*streak) if streak > 0 else 5
+                        gameOver(score)
                         pygame.time.wait(2000)
 
                         # Reset the board
+                        DISPLAYSURF.fill(BGCOLOR)
                         mainBoard = getRandomizedBoard()
                         revealedBoxes = generateRevealedBoxesData(False)
 
@@ -165,7 +171,8 @@ def main():
                         # Replay the start game animation.
                         startGameAnimation(mainBoard)
                         score = 0
-                        time = 300
+                        streak = 0
+                        time = RUNTIME
 
                     firstSelection = None # reset firstSelection variable
 
@@ -318,18 +325,78 @@ def startGameAnimation(board):
         coverBoxesAnimation(board, boxGroup)
 
 
-def gameWonAnimation(board):
-    # flash the background color when the player has won
-    coveredBoxes = generateRevealedBoxesData(True)
-    color1 = LIGHTBGCOLOR
-    color2 = BGCOLOR
+def makeTextObjs(text, font, color):
+    surf = font.render(text, True, color)
+    return surf, surf.get_rect()
 
-    for i in range(13):
-        color1, color2 = color2, color1 # swap colors
-        DISPLAYSURF.fill(color1)
-        drawBoard(board,coveredBoxes)
+
+def terminate():
+    pygame.quit()
+    sys.exit()
+
+
+def checkForKeyPress():
+    # Go through event queue looking for a KEYUP event.
+    # Grab KEYDOWN events to remove them from the event queue.
+    checkForQuit()
+
+    for event in pygame.event.get([KEYDOWN, KEYUP]):
+        if event.type == KEYDOWN:
+            continue
+        return event.key
+    return None
+
+
+def checkForQuit():
+    for event in pygame.event.get(QUIT): # get all the QUIT events
+        terminate() # terminate if any QUIT events are present
+    for event in pygame.event.get(KEYUP): # get all the KEYUP events
+        if event.key == K_ESCAPE:
+            terminate() # terminate if the KEYUP event was for the Esc key
+        pygame.event.post(event) # put the other KEYUP event objects back
+
+
+def gameOver(score):
+    DISPLAYSURF.fill(BGCOLOR)
+
+    # Draw game over text.
+    titleSurf, titleRect = makeTextObjs('Game Over', BIGFONT, TEXTCOLOR)
+    titleRect.center = (int(WINDOWWIDTH / 2) - 3, int(WINDOWHEIGHT / 2) - 3)
+    DISPLAYSURF.blit(titleSurf, titleRect)
+
+    # Draw the additional "Press a key to play." text.
+    pressKeySurf, pressKeyRect = makeTextObjs('Press a key to play.', BASICFONT, TEXTCOLOR)
+    pressKeyRect.center = (int(WINDOWWIDTH / 2), int(WINDOWHEIGHT / 2) + 100)
+    DISPLAYSURF.blit(pressKeySurf, pressKeyRect)
+
+    # load high score.
+    with open('highscore.txt', 'r') as fileIn:
+            highscore = int(fileIn.read().strip())
+
+    if score > highscore:
+        # Draw the score
+        scoreSurf, scoreRect = makeTextObjs('Score: ' + str(score), BASICFONT, TEXTCOLOR)
+        scoreRect.center = (int(WINDOWWIDTH / 2), int(WINDOWHEIGHT / 2) + 50)
+        DISPLAYSURF.blit(scoreSurf, scoreRect)
+
+        # Draw the new high score text.
+        subTitSurf, subTitRect = makeTextObjs('NEW HIGH SCORE!', BASICFONT, TEXTCOLOR)
+        subTitRect.center = (int(WINDOWWIDTH / 2), int(WINDOWHEIGHT / 2) + 65)
+        DISPLAYSURF.blit(subTitSurf, subTitRect)
+
+        # save new highscore
+        with open('highscore.txt', 'w') as fileIn:
+            fileIn.write(str(score))
+
+    else:
+        # Draw the score
+        scoreSurf, scoreRect = makeTextObjs('High Score: ' + str(highscore), BASICFONT, TEXTCOLOR)
+        scoreRect.center = (int(WINDOWWIDTH / 2), int(WINDOWHEIGHT / 2) + 50)
+        DISPLAYSURF.blit(scoreSurf, scoreRect)
+
+    while checkForKeyPress() == None:
         pygame.display.update()
-        pygame.time.wait(300)
+        FPSCLOCK.tick()
 
 
 def hasWon(revealedBoxes):
@@ -338,6 +405,7 @@ def hasWon(revealedBoxes):
         if False in i:
             return False # return False if any boxes are covered.
     return True
+
 
 if __name__ == '__main__':
     main()
