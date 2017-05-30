@@ -4,7 +4,7 @@ import random, pygame, sys
 from pygame.locals import *
 
 FPS = 30 # frames per second, the general speed of the program
-RUNTIME = 100 # Time limit to solve the puzzle
+RUNTIME = 121 # Time limit to solve the puzzle ( 2 min. + 1s for slight visual time display)
 WINDOWWIDTH = 640 # size of window's width in pixels
 WINDOWHEIGHT = 480 # size of window's height in pix
 REVEALSPEED = 8 # speed boxes' sliding reveals and covers
@@ -87,7 +87,7 @@ def main():
 
         seconds = FPSCLOCK.tick()/15
         time -= seconds
-        timerSurf, timerRect = makeTextObjs('Time: ' + str(round(time)), BASICFONT, TEXTCOLOR)
+        timerSurf, timerRect = makeTextObjs('Time: ' + timeConverter(time), BASICFONT, TEXTCOLOR)
         timerRect.topleft = (WINDOWWIDTH - 610, 10)
         DISPLAYSURF.blit(timerSurf, timerRect)
 
@@ -406,6 +406,13 @@ def hasWon(revealedBoxes):
             return False # return False if any boxes are covered.
     return True
 
+
+def timeConverter(time):
+    x = divmod(time, 60)
+    if x[1] >= 10:
+        return ':'.join(map(str, map(int, x)))
+    else:
+        return ':0'.join(map(str, map(int, x)))
 
 if __name__ == '__main__':
     main()
